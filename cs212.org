@@ -650,7 +650,35 @@ In all these cases, we have to make decisions on when to do what or not to do it
 :ID:       bd1af716-dab3-4019-870a-3d25292ae316
 :END:
 
-the problem has a natural brute-force solution.
+#+name: zebra-puzzle
+#+begin_quote
+1. There are five houses.
+2. The Englishman lives in the red house.
+3. The Spaniard owns the dog.
+4. Coffee is drunk in the green house.
+5. The Ukrainian drinks tea.
+6. The green house is immediately to the right of the ivory house.
+7. The Old Gold smoker owns snails.
+8. Kools are smoked in the yellow house.
+9. Milk is drunk in the middle house.
+10. The Norwegian lives in the first house.
+11. The man who smokes Chesterfields lives in the house next to the man with the fox.
+12. Kools are smoked in a house next to the house where the horse is kept.
+13. The Lucky Strike smoker drinks orange juice.
+14. The Japanese smokes Parliaments.
+15. The Norwegian lives next to the blue house.
+
+Q: Who drinks water? Who owns the zebra?
+
+Each house is painted a different color, and their inhabitants are of different nationalities, own different pets, drink different beverages and smoke different brands of American cigarettes.
+#+end_quote
+
+The first thing we should notice, is that the problem has a natural brute-force solution.
+
+
+Normally the brute-force solution determines the upper bound of the computational cost.
+We can determine how much optimization is needed by comparing it to the upper brute-force bound.
+
 we should learn to estimate the computational complexity of common procedures.
 
 computers are /extremely good at/ repeated calculations.
@@ -662,7 +690,214 @@ we already have a brute-force solution, which takes 1ms per 1K iterations (on [[
 
 lazy evaluation of a list of conditions.
 ** initial solution
+
+#+begin_src python :results none
+COLORS = ['red', 'green', 'blue', 'yellow', 'ivory']
+NATIONALITIES = ['English', 'Spanish', 'Norwegian', 'Japanese', 'Ukrainian']
+PETS = ['dog', 'snail', 'zebra', 'fox', 'horse']
+SMOKES = ['Parliament', 'Old Gold', 'Lucky Strike', 'Kools', 'Chesterfields']
+BEVERAGES = ['tea', 'milk', 'water', 'orange juice', 'coffee']
+
+PROPERTIES = [COLORS, NATIONALITIES, PETS, SMOKES, BEVERAGES]
+HOUSES = [1, 2, 3, 4, 5]
+#+end_src
+
+#+begin_src python
+assert len(PROPERTIES) == 5
+assert len(HOUSES) == 5
+
+for p in PROPERTIES:
+    print(f"{p}: length = {len(p)}")
+    assert len(p) == 5
+#+end_src
+
+#+RESULTS:
+: ['red', 'green', 'blue', 'yellow', 'ivory']: length = 5
+: ['English', 'Spanish', 'Norwegian', 'Japanese', 'Ukrainian']: length = 5
+: ['dog', 'snail', 'zebra', 'fox', 'horse']: length = 5
+: ['Parliament', 'Old Gold', 'Lucky Strike', 'Kools', 'Chesterfields']: length = 5
+: ['tea', 'milk', 'water', 'orange juice', 'coffee']: length = 5
+
+#+begin_src python
+from itertools import permutations
+
+def F(choices) -> list[tuple[int, ...]]:
+    "All possible choice orderings."
+    return list(permutations(choices))
+
+# --- Cell: 46fcaf55 (code) ---
+
+assert len(F(COLORS)) == 120
+assert len(F(NATIONALITIES)) == 120
+assert len(F(PETS)) == 120
+assert len(F(SMOKES)) == 120
+assert len(F(HOUSES)) == 120
+
+assert all(len(ord) == 5 for ord in F(HOUSES))
+
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python
+
+from math import factorial
+
+print(f"total possible orderings, factorial(5)^5 = {factorial(5)**5}.")
+#+end_src
+
+#+RESULTS:
+: total possible orderings, factorial(5)^5 = 24883200000.
+
+#+begin_src python
+
+colors = F(COLORS)[0]
+nats = F(NATIONALITIES)[0]
+pets = F(PETS)[0]
+smokes = F(SMOKES)[0]
+bevs = F(BEVERAGES)[0]
+
+print(colors, nats, pets, smokes, bevs)
+print(colors.index('blue'))
+#+end_src
+
+#+RESULTS:
+: ('red', 'green', 'blue', 'yellow', 'ivory') ('English', 'Spanish', 'Norwegian', 'Japanese', 'Ukrainian') ('dog', 'snail', 'zebra', 'fox', 'horse') ('Parliament', 'Old Gold', 'Lucky Strike', 'Kools', 'Chesterfields') ('tea', 'milk', 'water', 'orange juice', 'coffee')
+: 2
+
+#+begin_src python
+
+CONDS = [
+    nats.index('English') == colors.index('red'),
+    nats.index('Spanish') == pets.index('dog'),
+    bevs.index('coffee') == colors.index('green'),
+    nats.index('Ukrainian') == bevs.index('tea'),
+    colors.index('green') == colors.index('ivory') + 1,
+    smokes.index('Old Gold') == pets.index('snail'),
+    smokes.index('Kools') == colors.index('yellow'),
+    bevs.index('milk') == 2,
+    nats.index('Norwegian') == 0,
+    abs(smokes.index('Chesterfields') - pets.index('fox')) == 1,
+    abs(smokes.index('Kools') - pets.index('horse')) == 1,
+    smokes.index('Lucky Strike') == bevs.index('orange juice'),
+    nats.index('Japanese') == smokes.index('Parliament'),
+    abs(nats.index('Norwegian') - colors.index('blue')) == 1
+]
+print(CONDS, all(CONDS))
+#+end_src
+
+#+RESULTS:
+: [True, False, False, False, False, True, True, False, False, True, True, False, False, False] False
+
+#+begin_src python
+def valid(colors, nats, pets, smokes, bevs):
+
+    return (
+            nats.index('English') == colors.index('red')
+            and nats.index('Spanish') == pets.index('dog')
+            and bevs.index('coffee') == colors.index('green')
+            and nats.index('Ukrainian') == bevs.index('tea')
+            and colors.index('green') == colors.index('ivory') + 1
+            and smokes.index('Old Gold') == pets.index('snail')
+            and smokes.index('Kools') == colors.index('yellow')
+            and bevs.index('milk') == 2
+            and nats.index('Norwegian') == 0
+            and abs(smokes.index('Chesterfields') - pets.index('fox')) == 1
+            and abs(smokes.index('Kools') - pets.index('horse')) == 1
+            and smokes.index('Lucky Strike') == bevs.index('orange juice')
+            and nats.index('Japanese') == smokes.index('Parliament')
+            and abs(nats.index('Norwegian') - colors.index('blue')) == 1
+        )
+
+print(valid(colors, nats, pets, smokes, bevs))
+#+end_src
+
+#+RESULTS:
+: False
+
+#+begin_src python
+# %%timeit
+from itertools import product, islice
+
+test_iter = 1_000
+
+for i, (colors, nats, pets, smokes, bevs) in enumerate(
+    islice(product(F(COLORS), F(NATIONALITIES), F(PETS), F(SMOKES), F(BEVERAGES)),
+           test_iter),
+    start=1,
+):
+    if valid(colors, nats, pets, smokes, bevs):
+        print(colors, nats, pets, smokes, bevs)
+
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python
+counts = [0] * 5
+for colors in F(COLORS):
+    if colors.index('green') == colors.index('ivory') + 1:
+
+        counts[0] += 1
+        for nats in F(NATIONALITIES):
+            if (
+                nats.index('Norwegian') == 0
+                and nats.index('English') == colors.index('red')
+                and abs(nats.index('Norwegian') - colors.index('blue')) == 1
+                ):
+
+                counts[1] += 1
+                for bevs in F(BEVERAGES):
+                    if (
+                        bevs.index('milk') == 2
+                        and bevs.index('coffee') == colors.index('green')
+                        and nats.index('Ukrainian') == bevs.index('tea')
+                        ):
+
+                        counts[2] += 1
+                        for smokes in F(SMOKES):
+                            if (
+                                smokes.index('Kools') == colors.index('yellow')
+                                and smokes.index('Lucky Strike') == bevs.index('orange juice')
+                                and nats.index('Japanese') == smokes.index('Parliament')
+                                ):
+
+                                counts[3] += 1
+                                for pets in F(PETS):
+                                    if (
+                                       nats.index('Spanish') == pets.index('dog')
+                                       and smokes.index('Old Gold') == pets.index('snail')
+                                       and abs(smokes.index('Chesterfields') - pets.index('fox')) == 1
+                                       and abs(smokes.index('Kools') - pets.index('horse')) == 1
+                                    ):
+
+                                        counts[4] += 1
+                                        print(colors)
+                                        print(nats)
+                                        print(bevs)
+                                        print(smokes)
+                                        print(pets)
+                                        print()
+
+print(counts)
+#+end_src
+
+#+RESULTS:
+: ('yellow', 'blue', 'red', 'ivory', 'green')
+: ('Norwegian', 'Ukrainian', 'English', 'Spanish', 'Japanese')
+: ('water', 'tea', 'milk', 'orange juice', 'coffee')
+: ('Kools', 'Chesterfields', 'Old Gold', 'Lucky Strike', 'Parliament')
+: ('fox', 'horse', 'snail', 'dog', 'zebra')
+:
+: [24, 12, 12, 8, 1]
+
+hmm how's this solution? I thought this might be one step on the right direction, but the code finished almost instantly.
+
+We see that =counts[0]=24=, and it's mathematically easy to understand. because the ivory-green order is fixed, then can be taken as one item, so the total permutation has reduced from 5! to 4!. This alone reduced the search space by (120-24)/120=80%, a huge gain.
+
 ** Norvig's solution
+
+Note that there is one redundant variable =HOUSES=, that was defined but never used. That is because we are permutating the properties, but never the houses. Norvig did the opposite, and permutated the houses, and assigned different properties to them.
 ** summary
 
 1. inventory of concepts
