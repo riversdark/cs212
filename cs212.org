@@ -689,7 +689,11 @@ breaking a nested loop only breaks out the innermost one; to break them all we n
 we already have a brute-force solution, which takes 1ms per 1K iterations (on [[id:18a994a5-e635-40c2-b673-43e093705ae6][SolveIt]]), so the 25B iterations will take about 7 hours.
 
 lazy evaluation of a list of conditions.
-** initial solution
+** complexity analysis
+** houses and properties
+** formalizing requirements
+** brute force solution
+** problem setup
 
 #+begin_src python :results none
 COLORS = ['red', 'green', 'blue', 'yellow', 'ivory']
@@ -700,14 +704,11 @@ BEVERAGES = ['tea', 'milk', 'water', 'orange juice', 'coffee']
 
 PROPERTIES = [COLORS, NATIONALITIES, PETS, SMOKES, BEVERAGES]
 HOUSES = [1, 2, 3, 4, 5]
-#+end_src
 
-#+begin_src python
 assert len(PROPERTIES) == 5
 assert len(HOUSES) == 5
 
 for p in PROPERTIES:
-    print(f"{p}: length = {len(p)}")
     assert len(p) == 5
 #+end_src
 
@@ -725,22 +726,14 @@ def F(choices) -> list[tuple[int, ...]]:
     "All possible choice orderings."
     return list(permutations(choices))
 
-# --- Cell: 46fcaf55 (code) ---
-
-assert len(F(COLORS)) == 120
-assert len(F(NATIONALITIES)) == 120
-assert len(F(PETS)) == 120
-assert len(F(SMOKES)) == 120
-assert len(F(HOUSES)) == 120
-
-assert all(len(ord) == 5 for ord in F(HOUSES))
-
+for p in PROPERTIES:
+    assert len(F(p)) == 120
+    assert all(len(ord) == 5 for ord in F(p))
 #+end_src
 
 #+RESULTS:
 
 #+begin_src python
-
 from math import factorial
 
 print(f"total possible orderings, factorial(5)^5 = {factorial(5)**5}.")
@@ -749,24 +742,31 @@ print(f"total possible orderings, factorial(5)^5 = {factorial(5)**5}.")
 #+RESULTS:
 : total possible orderings, factorial(5)^5 = 24883200000.
 
-#+begin_src python
+Take one of the permutation as example. Since all properties are list of strings, we can using matching indices of different properties to indicate they are from the same (ordered) house.
+For example if =colors.index('blue')==pets.index('dog')==2=, then the second house is blue and owns the dog.
 
+#+begin_src python
 colors = F(COLORS)[0]
 nats = F(NATIONALITIES)[0]
 pets = F(PETS)[0]
 smokes = F(SMOKES)[0]
 bevs = F(BEVERAGES)[0]
 
-print(colors, nats, pets, smokes, bevs)
-print(colors.index('blue'))
+print(colors, nats, pets, smokes, bevs, sep='\n')
+print(f"House {colors.index('blue')} has color blue.")
 #+end_src
 
 #+RESULTS:
-: ('red', 'green', 'blue', 'yellow', 'ivory') ('English', 'Spanish', 'Norwegian', 'Japanese', 'Ukrainian') ('dog', 'snail', 'zebra', 'fox', 'horse') ('Parliament', 'Old Gold', 'Lucky Strike', 'Kools', 'Chesterfields') ('tea', 'milk', 'water', 'orange juice', 'coffee')
-: 2
+: ('red', 'green', 'blue', 'yellow', 'ivory')
+: ('English', 'Spanish', 'Norwegian', 'Japanese', 'Ukrainian')
+: ('dog', 'snail', 'zebra', 'fox', 'horse')
+: ('Parliament', 'Old Gold', 'Lucky Strike', 'Kools', 'Chesterfields')
+: ('tea', 'milk', 'water', 'orange juice', 'coffee')
+: House 2 has color blue.
+
+this way we can turn the puzzle into a list of conditions to check.
 
 #+begin_src python
-
 CONDS = [
     nats.index('English') == colors.index('red'),
     nats.index('Spanish') == pets.index('dog'),
@@ -815,6 +815,76 @@ print(valid(colors, nats, pets, smokes, bevs))
 #+RESULTS:
 : False
 
+at this point the problem become straight-forward: we just loop over all the permutations of all the properties, and validate all the conditions for each combination, filtering out those that match the requirements.
+
+#+begin_src python :eval never
+for colors in F(COLORS):
+    for nats in F(NATIONALITIES):
+        for bevs in F(BEVERAGES):
+            for smokes in F(SMOKES):
+                for pets in F(PETS):
+                    if valid(colors, nats, pets, smokes, bevs):
+                        print(colors, nats, pets, smokes, bevs)
+#+end_src
+
+The problem with this approach, however, is that it's extremely computationally intensive.
+
+** alternative setup
+
+Note that there is one redundant variable =HOUSES=, that was defined but never used. That is because we are permutating the properties, but never the houses. Norvig did the opposite, and permutated the houses, and assigned different properties to them.
+
+#+begin_src python :eval never
+ordering = F(HOUSES)
+
+for (red, green, blue, yellow, ivory) in ordering:
+    for (en, es, nor, jap, ukr) in ordering:
+        for (dog, snail, zebra, fox, horse) in ordering:
+            for (Parliament, OldGold, LuckyStrike, Kools, Chesterfields) in ordering:
+                for (tea, milk, water, ojuice, coffee) in ordering:
+                    if (en is red and
+                        es is dog and
+                        coffee is green and
+                        ukr is tea and
+                        green == ivory +1 and
+                        OldGold is snail and
+                        Kools is yellow and
+                        milk == 2 and
+                        nor == 0 and
+                        abs(Chesterfields - fox) == 1 and
+                        abs(Kools - horse) == 1 and
+                        LuckyStrike is ojuice and
+                        jap is Parliament and
+                        abs(nor-blue)==1):
+                            print(zebra, water)
+#+end_src
+
+Next, we can rewrite the nested loop using list comprehension.
+
+#+begin_src python :eval never
+ordering = F(HOUSES)
+
+
+[(zebra, water) for (red, green, blue, yellow, ivory) in ordering
+ for (en, es, nor, jap, ukr) in ordering
+ for (dog, snail, zebra, fox, horse) in ordering
+ for (Parliament, OldGold, LuckyStrike, Kools, Chesterfields) in ordering
+ for (tea, milk, water, ojuice, coffee) in ordering
+ if (en is red and
+     es is dog and
+     coffee is green and
+     ukr is tea and
+     green == ivory +1 and
+     OldGold is snail and
+     Kools is yellow and
+     milk == 2 and
+     nor == 0 and
+     abs(Chesterfields - fox) == 1 and
+     abs(Kools - horse) == 1 and
+     LuckyStrike is ojuice and
+     jap is Parliament and
+     abs(nor-blue)==1)]
+
+#+end_src
 #+begin_src python
 # %%timeit
 from itertools import product, islice
@@ -891,13 +961,12 @@ print(counts)
 :
 : [24, 12, 12, 8, 1]
 
+
 hmm how's this solution? I thought this might be one step on the right direction, but the code finished almost instantly.
 
 We see that =counts[0]=24=, and it's mathematically easy to understand. because the ivory-green order is fixed, then can be taken as one item, so the total permutation has reduced from 5! to 4!. This alone reduced the search space by (120-24)/120=80%, a huge gain.
-
 ** Norvig's solution
 
-Note that there is one redundant variable =HOUSES=, that was defined but never used. That is because we are permutating the properties, but never the houses. Norvig did the opposite, and permutated the houses, and assigned different properties to them.
 ** summary
 
 1. inventory of concepts
@@ -910,6 +979,7 @@ tools for timing the implementations, and for counting iterations.
 keep the aspects of implementation separate. (Aspects oriented programming)
 
 the poker problem is like a math problem, but Zebra puzzle is more like a science problem.
+
 * cryptarithmetic puzzle
 :PROPERTIES:
 :ID:       f7ed0143-82a3-45e8-8d56-9585362873fd
