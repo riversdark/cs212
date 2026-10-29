@@ -42,7 +42,8 @@ def estimate_runtime():
     happy millions, sad trillions, and uncertain billions
     On a 2.4G Hz computer, assuming each iteration takes 1000 computer instructions...
     total runtime 1000 * (24/2.4) = 10K seconds, about 3 hours.
-    \n"""
+    TODO: still not sure how the 1000 number come about.
+    """
     print(txt)
 
 def imright(h1, h2):
@@ -53,40 +54,31 @@ def nextto(h1, h2):
     "House 1 is next to house 2."
     return abs(h1-h2) == 1
 
-def c(seq):
-    """Turn seq into generator, remember how many times it's called.
-    """
-    c.starts += 1
-    for item in seq:
-        c.items += 1
-        yield item
-
-c.starts, c.items = 0, 0
-
-def zebra_puzzle():
+def zebra_puzzle(count=iter):
     """get house number for water and zebra.
     1. approaches to assign properties to houses: sets, classes, assignments.
         assigning house numbers directly to properties.
     2. using generator expression: stop early, less indentation, easier edit.
     3. ordering for/if statements to eliminate impossible combos as early as possible.
+    4. count=iter for ordinary run, elaborate counting in instrument_fn
     """
     return next(
         (WATER, ZEBRA)
-        for (red, green, ivory, blue, yellow) in c(orderings)
+        for (red, green, ivory, blue, yellow) in count(orderings)
         if imright(green, ivory)
-        for (en, es, ukr, jap, nor) in c(orderings)
+        for (en, es, ukr, jap, nor) in count(orderings)
         if nor == 1
         if en is red
         if nextto(nor, blue)
-        for (coffee, tea, milk, WATER, ojuice) in c(orderings)
+        for (coffee, tea, milk, WATER, ojuice) in count(orderings)
         if milk == 3
         if coffee is green
         if ukr is tea
-        for (Kools, LuckyStrike, Chesterfields, OldGold, Parliaments) in c(orderings)
+        for (Kools, LuckyStrike, Chesterfields, OldGold, Parliaments) in count(orderings)
         if Kools is yellow
         if LuckyStrike is ojuice
         if jap is Parliaments
-        for (dog, fox, snails, horse, ZEBRA) in c(orderings)
+        for (dog, fox, snails, horse, ZEBRA) in count(orderings)
         if es is dog
         if OldGold is snails
         if nextto(Chesterfields, fox)
@@ -115,9 +107,19 @@ def timethem(n, fn, *args):
     return min(res), mean(res), max(res)
 
 def instrument_fn(fn, *args):
-    c.starts, c.items = 0, 0
-    res = fn(*args)
-    print(f"Function {fn.__name__} got {res} with {c.starts} iters over {c.items} items.")
+    """Closure function for elaborate execution counting."""
+    starts = items = 0
+
+    def counted(seq):
+        nonlocal starts, items
+        starts += 1
+        for item in seq:
+            items += 1
+            yield item
+
+    res = fn(counted, *args)
+    print(f"Function {fn.__name__} got {res} with {starts} iters over {items} items.")
+    return res
 
 def test_zebra():
 
@@ -135,13 +137,21 @@ def test_zebra():
 
     assert zebra_puzzle() == (1, 5)
 
-    print("zebra tests passed.")
+    from contextlib import redirect_stdout
+    from io import StringIO
+
+    output = StringIO()
+    with redirect_stdout(output):
+        assert instrument_fn(zebra_puzzle) == (1, 5)
+    assert "with 24 iters over 2609 items." in output.getvalue()
+
+    print("zebra tests passed.\n")
 
 if __name__ == "__main__":
 
     estimate_runtime()
     test_zebra()
-    print(zebra_puzzle())
-    print(timeit(zebra_puzzle))
-    print(timethem(10, zebra_puzzle))
+    print(f"Water and zebra are in house {zebra_puzzle()}, respectively.")
+    print(f"Solution takes {timeit(zebra_puzzle)[0]} second.")
+    print(f"min/mean/max execution time:\n {timethem(10, zebra_puzzle)} seconds")
     instrument_fn(zebra_puzzle)
