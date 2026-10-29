@@ -22,6 +22,8 @@ Each house is painted a different color, and their inhabitants are of different
 nationalities, own different pets, drink different beverages and smoke different
 brands of American cigarettes.
 """
+from statistics import mean
+import time
 
 import itertools
 from math import factorial
@@ -29,7 +31,6 @@ from math import factorial
 HOUSES = [1, 2, 3, 4, 5]
 orderings = list(itertools.permutations(HOUSES))
 
-# how to assign properties to houses? sets, classes, *assignments*..
 def estimate_runtime():
     "estimate total iterations, expected runtime, etc."
     txt = f"""\nEstimating runtime:
@@ -52,32 +53,71 @@ def nextto(h1, h2):
     "House 1 is next to house 2."
     return abs(h1-h2) == 1
 
-# solution using generator expression: stop early, less indentation, easier edit.
-# order the for/if statements to eliminate impossible combos as early as possible
+def c(seq):
+    """Turn seq into generator, remember how many times it's called.
+    """
+    c.starts += 1
+    for item in seq:
+        c.items += 1
+        yield item
+
+c.starts, c.items = 0, 0
+
 def zebra_puzzle():
-    "get house number for water and zebra."
+    """get house number for water and zebra.
+    1. approaches to assign properties to houses: sets, classes, assignments.
+        assigning house numbers directly to properties.
+    2. using generator expression: stop early, less indentation, easier edit.
+    3. ordering for/if statements to eliminate impossible combos as early as possible.
+    """
     return next(
         (WATER, ZEBRA)
-        for (red, green, ivory, blue, yellow) in orderings
+        for (red, green, ivory, blue, yellow) in c(orderings)
         if imright(green, ivory)
-        for (en, es, ukr, jap, nor) in orderings
-        if nor is 1     # warning, intentional
+        for (en, es, ukr, jap, nor) in c(orderings)
+        if nor == 1
         if en is red
         if nextto(nor, blue)
-        for (coffee, tea, milk, WATER, ojuice) in orderings
-        if milk == 3    # no warning
+        for (coffee, tea, milk, WATER, ojuice) in c(orderings)
+        if milk == 3
         if coffee is green
         if ukr is tea
-        for (Kools, LuckyStrike, Chesterfields, OldGold, Parliaments) in orderings
+        for (Kools, LuckyStrike, Chesterfields, OldGold, Parliaments) in c(orderings)
         if Kools is yellow
         if LuckyStrike is ojuice
         if jap is Parliaments
-        for (dog, fox, snails, horse, ZEBRA) in orderings
+        for (dog, fox, snails, horse, ZEBRA) in c(orderings)
         if es is dog
         if OldGold is snails
         if nextto(Chesterfields, fox)
         if nextto(Kools, horse)
     )
+
+def timeit(fn, *args):
+    """Timing the function execution.
+    using higher order functions for functions with side effects.
+    using star arguments for easy packing & unpacking.
+    making repeated measurements moves CS from math to be more like science..
+    this helps to reduce errors, randomness, and external effects
+    """
+
+    t0 = time.time()
+    res = fn(*args)
+    t1 = time.time()
+
+    return t1-t0, res
+
+def timethem(n, fn, *args):
+    """Time function for n times, return (min, mean, max) time.
+    3 order function, fn -> timeit -> timethem
+    """
+    res = [timeit(fn, *args)[0] for _ in range(n)]
+    return min(res), mean(res), max(res)
+
+def instrument_fn(fn, *args):
+    c.starts, c.items = 0, 0
+    res = fn(*args)
+    print(f"Function {fn.__name__} got {res} with {c.starts} iters over {c.items} items.")
 
 def test_zebra():
 
@@ -102,3 +142,6 @@ if __name__ == "__main__":
     estimate_runtime()
     test_zebra()
     print(zebra_puzzle())
+    print(timeit(zebra_puzzle))
+    print(timethem(10, zebra_puzzle))
+    instrument_fn(zebra_puzzle)
