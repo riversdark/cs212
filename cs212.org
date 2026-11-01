@@ -644,11 +644,21 @@ Sometimes we can continue to refactor the program to help it progress in one of 
 But some other times it just doesn't feel worth it to spend the extra time making small improvements on the program.
 In all these cases, we have to make decisions on when to do what or not to do it at all.
 
-* Zebra puzzle
+* Zebra puzzle (8)                                          :fc:
 :PROPERTIES:
 :header-args:python: :session zebra :results both :kernel notes :exports both
 :ID:       bd1af716-dab3-4019-870a-3d25292ae316
+:FC_CREATED: 2026-10-31T08:35:00Z
+:FC_TYPE:  normal
+:FC_ALGO:  sm2
 :END:
+:REVIEW_DATA:
+| position | ease | box | interval | due                  |
+|----------+------+-----+----------+----------------------|
+| front    | 2.50 |   2 |     1.00 | 2026-11-01T08:41:13Z |
+:END:
+
+In this lesson we solve a famous zebra puzzle, which is formulated as follows:
 
 #+name: zebra-puzzle
 #+begin_quote
@@ -673,6 +683,8 @@ Q: Who drinks water? Who owns the zebra?
 Each house is painted a different color, and their inhabitants are of different nationalities, own different pets, drink different beverages and smoke different brands of American cigarettes.
 #+end_quote
 
+** complexity analysis
+
 The first thing we should notice, is that the problem has a natural brute-force solution.
 
 
@@ -684,16 +696,9 @@ we should learn to estimate the computational complexity of common procedures.
 computers are /extremely good at/ repeated calculations.
 since modern computers normally have clock speeds in giga bytes range, procedures with millions of operations can be done ligheningly fast; however those in billions would take considerable time.
 
-breaking a nested loop only breaks out the innermost one; to break them all we need to use =islice= on the =product= (from [[id:d4f1d109-e30f-4ea1-a45e-cafda633e35c][itertools]]).
-
-we already have a brute-force solution, which takes 1ms per 1K iterations (on [[id:18a994a5-e635-40c2-b673-43e093705ae6][SolveIt]]), so the 25B iterations will take about 7 hours.
-
-lazy evaluation of a list of conditions.
-** complexity analysis
-** houses and properties
-** formalizing requirements
-** brute force solution
 ** problem setup
+
+houses and properties
 
 #+begin_src python :results none
 COLORS = ['red', 'green', 'blue', 'yellow', 'ivory']
@@ -829,7 +834,24 @@ for colors in F(COLORS):
 
 The problem with this approach, however, is that it's extremely computationally intensive.
 
-** alternative setup
+** requirement formulation
+
+#+name: zebra-imright
+#+begin_src python
+
+#+end_src
+
+#+name: zebra-nextto
+#+begin_src python
+
+#+end_src
+** brute force solution
+we already have a brute-force solution, which takes 1ms per 1K iterations (on [[id:18a994a5-e635-40c2-b673-43e093705ae6][SolveIt]]), so the 25B iterations will take about 7 hours.
+
+breaking a nested loop only breaks out the innermost one; to break them all we need to use =islice= on the =product= (from [[id:d4f1d109-e30f-4ea1-a45e-cafda633e35c][itertools]]).
+
+** speeding up
+lazy evaluation of a list of conditions.
 
 Note that there is one redundant variable =HOUSES=, that was defined but never used. That is because we are permutating the properties, but never the houses. Norvig did the opposite, and permutated the houses, and assigned different properties to them.
 
@@ -965,22 +987,30 @@ print(counts)
 hmm how's this solution? I thought this might be one step on the right direction, but the code finished almost instantly.
 
 We see that =counts[0]=24=, and it's mathematically easy to understand. because the ivory-green order is fixed, then can be taken as one item, so the total permutation has reduced from 5! to 4!. This alone reduced the search space by (120-24)/120=80%, a huge gain.
-** Norvig's solution
+** performance evaluations
 
-** summary
+higher order functions for
 
-1. inventory of concepts
-2. refine the idea
-3. create the simplest implementation
-4. back-of-enveloppe calculation of code complexity
-5. improve code
+this works because in Python, functions are first class objects, so they can be used as arguments for other functions, just like other variables.
+** debugging decorations
+
+here we introduce of idea of Aspect Oriented Programming (AOP).
+functionality to get things done, efficiency, debugging to understand how things work.
+to keep the logic flow clear, we generally want to separate these concerns.
+** conclusion
+
+By now we have formulated a general process for problem solving using programming:
+1. keep an inventory of the concepts involved in the problem;
+2. refine the ideas, transform the problem from English to the programming language;
+3. create the simplest implementation;
+4. back-of-enveloppe calculation of code complexity;
+5. improve code.
 
 tools for timing the implementations, and for counting iterations.
 keep the aspects of implementation separate. (Aspects oriented programming)
 
 the poker problem is like a math problem, but Zebra puzzle is more like a science problem.
-
-* cryptarithmetic puzzle
+* cryptarithmetics
 :PROPERTIES:
 :ID:       f7ed0143-82a3-45e8-8d56-9585362873fd
 :END:
@@ -1008,10 +1038,7 @@ for nums in random_outcome(): # how to loop with generator?
         print(nums)
 #+end_src
 
-
 review my pseudo code logic for brute-force solving the puzzle, and give me the working code.
-
-
 
 #+begin_reasoning
 We need answer. Need review pseudo code logic, give working code. Need understand puzzle: cryptarithmetic ODD+ODD==EVEN. Need find numerals matching. Usually letters map to distinct digits? In cryptarithmetic each letter distinct digit, leading O and E not zero. Need solve ODD + ODD = EVEN. Let's solve manually: ODD is 3-digit with O tens? Wait ODD: positions O D D. ODD + ODD = EVEN (4-digit). Since ODD max 999, double max 1998, so EVEN starts with 1? E=1 likely. EVEN positions E V E N. So E=1. ODD+ODD = 1 V 1 N. Let's brute force. O,D,V,N digits. O not 0, E=1, maybe distinct. Equation: 2*(100O + 11D) = 1000 + 100V + 10 + N = 1010 + 100V + N. Left max for O=9 D=9 =1998. EVEN between 1010 and 1998. E=1. Need solve.
@@ -1322,8 +1349,6 @@ for nums in candidates():
 This yields the same two solutions.
 
 both the above solutions try to be clever, by limiting the searching space, I want the most brute-force one, checking the digit requirements one by one.
-
-
 
 #+begin_reasoning
 We need answer user. Need understand. They want most brute-force one, checking digit requirements one by one, not clever limiting search space. They likely want generator random_outcome? They asked review pseudo code and working code. Then assistant gave optimized distinct brute force. User says both above solutions try to be clever, by limiting searching space, I want the most brute-force one, checking digit requirements one by one.
