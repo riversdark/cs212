@@ -2,45 +2,47 @@
 Find ALL numeral combinations (0-9) that satisfy the equation ODD+ODD=EVEN
 
 O cannot be 0.
-E can only be 1.
-repeated letters correspond to the same numeral value, O, D, E.
+E can only be 1 for any valid solution.
+Each repeated letter (ODE) corresponds to the same numeral value.
+Repetitions among ODEVN are allowed.
 """
+from itertools import product
 from zebra import timeit, timethem
 
-def random_outcome() -> str:
-    """A generator for 10-digit numerals generation. e.g. '3232232234'.
+def candidates():
+    """A generator for 10-digit numerals encoding, e.g. '3232232234'.
     No pre-applied requirements checking, each digit can be any of [0-9].
+    Total iterations = 10^10 = 10 Billion.
     """
-    yield ...
+    for digits in product('0123456789', repeat=10):
+        yield "".join(digits)
+
 
 def insert_ops(nums:str) -> str:
-    """Insert math operators to form proper math expressions.
-    e.g. '3232232234' -> '323+223==2234'
-    """
-    return ...
+    """Insert operators so ODDODDEVEN -> ODD+ODD==EVEN"""
+    return f"{nums[:3]}+{nums[3:6]}=={nums[6:]}"
 
 
 def crypta_puzzle():
-    """Solving the puzzle by brute-force enumeration.
-    Q:  how to loop with generator?
-    """
-    rog = random_outcome()
-
-    return [nums
-            for nums in rog
-            if nums[0] == nums[3] != 0 # O not 0
+    """Solving the puzzle by brute-force enumeration."""
+    return [insert_ops(nums)
+            for nums in candidates()
+            if nums[0] == nums[3] != '0' # O not 0
             if nums[1] == nums[2] == nums[4] == nums[5] # D
-            if nums[6] == nums[8] == 1 # E is 1
-            if eval(insert_ops(nums)) is True
+            if nums[6] == nums[8] == '1' # E is 1
+            if eval(insert_ops(nums))    # fragile and inefficient, but works
             ]
 
 def test_crypta():
 
+    cand = candidates()
+    assert len(next(cand)) == 10
+    assert insert_ops('3232232234') == '323+223==2234'
     print("Crypta tests passed!")
 
 if __name__ == "__main__":
 
     test_crypta()
-    print(crypta_puzzle)
+    print(crypta_puzzle())
     print(timeit(crypta_puzzle))
     print(timethem(10, crypta_puzzle))
