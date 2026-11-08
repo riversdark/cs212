@@ -151,6 +151,10 @@ def compare_shuffles(n=100_000, deck_size=4):
     """Compare permutation frequencies for the three shuffle algorithms.
     random.shuffle = knuth, while teacher's clearly biased.
     """
+    # TODO update printout
+    # deck size, possible #permutations, probability
+    # realized frequencies of the permutations
+
     for shuffle_fn in (random.shuffle, Knuth_shuffle, teacher_shuffle):
         counts = Counter()
 
@@ -162,10 +166,6 @@ def compare_shuffles(n=100_000, deck_size=4):
         print(shuffle_fn.__name__)
         for permutation, count in sorted(counts.items()):
             print(permutation, count)
-
-        # TODO update printout
-        # deck size, possible #permutations, probability
-        # realized frequencies of the permutations
 
 
 def print_probability(n=1_000_000):

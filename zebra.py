@@ -107,7 +107,7 @@ def timethem(n, fn, *args):
     return min(res), mean(res), max(res)
 
 def instrument_fn(fn, *args):
-    """Closure function for elaborate execution counting."""
+    """Closure function for elaborate iteration counting."""
     starts = items = 0
 
     def counted(seq):

@@ -6,33 +6,31 @@
 Norvig's CS course (Design of Computer Programs) on Udacity.
 I have been programming for 10 years, but this is the first time I'm taking a proper programming course.
 
-* Poker hands (11)                                          :fc:
+* Poker hands (5)                                           :fc:
 :PROPERTIES:
 :header-args:python: :session poker :results both :kernel notes :exports both
-:FC_CREATED: 2026-07-29T08:20:28Z
+:ID:       f384f6bf-2b2f-4fe3-89f2-e29f9d23fbeb
+:FC_CREATED: 2026-11-07T03:55:23Z
 :FC_TYPE:  normal
 :FC_ALGO:  sm2
-:ID:       f384f6bf-2b2f-4fe3-89f2-e29f9d23fbeb
 :END:
 :REVIEW_DATA:
 | position | ease | box | interval | due                  |
 |----------+------+-----+----------+----------------------|
-| front    | 2.05 |   6 |    58.50 | 2026-12-09T13:35:14Z |
+| front    | 2.50 |   2 |     1.00 | 2026-11-09T14:54:07Z |
 :END:
 
-the problems is simple: when playing poker, which hand has the highest rank?
+The problems is simple: when playing poker, which hand has the highest rank?
 
-In Norvig's style, we are not fully configuring the problem at the start; we introduce new concepts along the way, when we need them.
+The good thing about this problem is that it can be perfectly formalized as an optimization problem in mathematics. We just need to find a way to represent the input, find a way to solve the optimization problem. Then we will get our desired result.
 
-This reduces the mental burden and workload at the start, make starting the problem much easier. However this also means we later need to refactor the code.
-
-This way, there is a constant sense of exploration and problem solving, and we do not plan all the details, or solve all the problems at the start.
-
-The goal is to define the minimum constructs, and test early.
+Obviously, not all programming problems can be transformed into an equivalent mathematical problem with such clear formulation. But if we can, we should take good advantage of this clear representation.
 
 ** representing hands
 
 : vocab: hands as list of cards
+It's not obvious how we should represent the vocabulary in a given problem.
+The definition of the vocabulary has to be able to support all the operations we operate on, but the range of operations we need are not clear in the beginning.
 
 we'll consider a single deck with 52 cards (no wild cards). There are four suits:
 Spade, Heart, Club, and Diamond (SHCD), which are not ranked. Each suit has 13
@@ -362,7 +360,7 @@ test_hand_rank()
 #+RESULTS:
 : hand_rank(hand) tests passed.
 
-** minimum viable program
+*** minimum viable program
 
 Now that all the helper functions are written, we have the whole working program.
 This is the minimum effort required to get the job done.
@@ -376,7 +374,10 @@ test_poker()
 #+RESULTS:
 : All poker tests passed.
 
-** ace-low straight
+** edge cases (2)
+
+We already got the core functionality working, but there are still some edge cases where the program don't work as expected. We now have to patch up these edge cases.
+*** ace-low straight
 
 We actually have a bug in our poker function, which is related to the ace-low straight hand.
 
@@ -449,7 +450,7 @@ print("card_ranks(hand) fix for ace-low straight tests passed.")
 
 In real world software development, when a bug occurs, we might not be so lucky to easily identify the provenance and consequences, and it might require more careful and logic understanding to fix the bug.
 
-** breaking ties
+*** breaking ties
 
 A second edge case is ties, that is, what happens when multiple hands have the same ranking. At present when that happens, we simply choose the first hand that has the maximum ranking, because that's just how the builtin =max= function works.
 But this doesn't feel fair, especially for the other players with another winning hand of the same ranking.
@@ -481,7 +482,9 @@ print("allmax tests passed.")
 #+RESULTS:
 : allmax tests passed.
 
-** validating hands
+** extra functionalities (4)
+
+*** validating hands
 
 Before moving on, we should probably write a function to check that each hand is actually a valid hand.
 
@@ -523,7 +526,7 @@ print("validate(hand) tests passed.")
 #+RESULTS:
 : validate(hand) tests passed.
 
-** dealing hands
+*** dealing hands
 
 You can also add a feature to do hands.
 We simply shuffle the deck and then take each consecutive n cards on one hand.
@@ -557,21 +560,21 @@ print("deal(numhands) tests passed.")
 And what would happen if we deal more cards than there are in a single deck?
 These are the edge cases of the program that even if we do nothing about them, we should be aware of them.
 
-** shuffling hands
+*** shuffling hands
 
 We simply called =random.shuffle= to shuffle the cards before dealing. If we are so inclined we can also write the shuffling function ourselves. However, being a function used to "randomize" the card ordering, we have to guaranttee the randomness. But how? This is something we should consider ever before implementing the shuffling algorithm.
 
 It's not enough to just look at one shuffled deck, we have to check their distributions. "All cards are random, but some are more random than others."
 
-**** Norvig teacher's shuffling
+***** Norvig teacher's shuffling
 
 We can simply keep swapping the cards till all of them are swapped at least once. To achieve this we can try a brute-force approach, keep a list of swappedness of all cards, and simply keep swapping till all the values are true.
 
-**** Norvig and Knuth's shuffling
+***** Norvig and Knuth's shuffling
 
 A second implementation is more methodical: starting from the first card, we swap it with some random card following it, and keep repeating it till we reach the penultimate card.
 
-**** Verifying soundness of shuffling algorithms
+******* Verifying soundness of shuffling algorithms
 
 Our goal for shuffling is true randomness: we want each permutation of the deck to be equally likely to appear. Just by inspecting the shuffling logic it's hard to see whether an algorithm has reached this true randomness, but it's easy to verify it, if we have shuffled a sufficient number of decks, because this problem has a clearly verifiable result.
 
@@ -579,7 +582,7 @@ This is one of these common cases where, computers, being exceptionally good at 
 
 The first program is inefficient, which is unfortunate enough, but more importantly it's wrong.
 
-** verifying hand probabilities
+*** verifying hand probabilities
 
 In the same vein as verifying the soundness of the shuffling program, we can also verify the soundness of the =deal= program.
 
@@ -614,6 +617,13 @@ for i in range(9):
 : 8: 0.0017%
 
 ** conclusion
+
+In Norvig's style, we are not fully configuring the problem at the start; we introduce new concepts along the way, when we need them.
+This reduces the mental burden and workload at the start, make starting the problem much easier. However this also means we later need to refactor the code.
+
+This way, there is a constant sense of exploration and problem solving, and we do not plan all the details, or solve all the problems at the start.
+
+The goal is to define the minimum constructs, and test early.
 
 
 dimensions of programming
@@ -655,7 +665,7 @@ In all these cases, we have to make decisions on when to do what or not to do it
 :REVIEW_DATA:
 | position | ease | box | interval | due                  |
 |----------+------+-----+----------+----------------------|
-| front    | 2.50 |   2 |     1.00 | 2026-11-01T08:41:13Z |
+| front    | 2.50 |   3 |     6.00 | 2026-11-09T03:49:56Z |
 :END:
 
 In this lesson we solve a famous zebra puzzle, which is formulated as follows:
@@ -987,13 +997,20 @@ print(counts)
 hmm how's this solution? I thought this might be one step on the right direction, but the code finished almost instantly.
 
 We see that =counts[0]=24=, and it's mathematically easy to understand. because the ivory-green order is fixed, then can be taken as one item, so the total permutation has reduced from 5! to 4!. This alone reduced the search space by (120-24)/120=80%, a huge gain.
-** performance evaluations
+** running time
 
 higher order functions for
 
 this works because in Python, functions are first class objects, so they can be used as arguments for other functions, just like other variables.
-** debugging decorations
+** running iteration
 
+like the timers, here we also use higher order functions.
+
+However, the situation here is a little more complicated than the timer case. in the timer case, we write higher-order functions to perform some auxiliary works. Here, in order to achieve the auxiliary goals, we have to modify the function in the first place.
+
+non-local variables are used when we want to pass some variable values from the outer function into the inner function and we also want to keep the variable values from the inner function
+
+the generator fn is simple, what we really want are the side effects.
 here we introduce of idea of Aspect Oriented Programming (AOP).
 functionality to get things done, efficiency, debugging to understand how things work.
 to keep the logic flow clear, we generally want to separate these concerns.
