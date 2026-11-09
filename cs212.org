@@ -665,7 +665,7 @@ In all these cases, we have to make decisions on when to do what or not to do it
 :REVIEW_DATA:
 | position | ease | box | interval | due                  |
 |----------+------+-----+----------+----------------------|
-| front    | 2.50 |   3 |     6.00 | 2026-11-09T03:49:56Z |
+| front    | 2.35 |   4 |    13.79 | 2026-11-23T02:36:10Z |
 :END:
 
 In this lesson we solve a famous zebra puzzle, which is formulated as follows:
