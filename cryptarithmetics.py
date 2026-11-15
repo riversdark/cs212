@@ -3,6 +3,7 @@ Find ALL numeral combinations (0-9) that satisfy the equation ODD+ODD=EVEN
 
 O cannot be 0.
 E can only be 1 for any valid solution.
+N can only be even.
 Each repeated letter (ODE) corresponds to the same numeral value.
 Repetitions among ODEVN are allowed.
 """
@@ -34,6 +35,16 @@ def candidates3():
     for (O, D, V, N) in product('0123456789', repeat=4):
         yield f"{O}{D}{D}{O}{D}{D}{E}{V}{E}{N}"
 
+def candidates4():
+    """A generator for 4-letter numerals encoding, e.g. ODVN=1234.
+    E=1, N is even, ODV can be anything.
+    Total iterations = 5*10^3 = 5K, 2M times speedup.
+    """
+    E = '1'
+    for N in '02468':
+        for (O, D, V) in product('0123456789', repeat=3):
+            yield f"{O}{D}{D}{O}{D}{D}{E}{V}{E}{N}"
+
 def insert_ops(nums:str) -> str:
     """Insert operators so ODDODDEVEN -> ODD+ODD==EVEN"""
     return f"{nums[:3]}+{nums[3:6]}=={nums[6:]}"
@@ -41,7 +52,7 @@ def insert_ops(nums:str) -> str:
 def crypta_puzzle():
     """Solving the puzzle by brute-force enumeration."""
     return [insert_ops(nums)
-            for nums in candidates3()
+            for nums in candidates4()
             if nums[0] == nums[3] != '0' # O not 0
             if nums[1] == nums[2] == nums[4] == nums[5] # D
             if nums[6] == nums[8] == '1' # E is 1
