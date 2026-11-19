@@ -17,10 +17,12 @@ I have been programming for 10 years, but this is the first time I'm taking a pr
 :REVIEW_DATA:
 | position | ease | box | interval | due                  |
 |----------+------+-----+----------+----------------------|
-| front    | 2.50 |   3 |     6.00 | 2026-11-16T09:41:49Z |
+| front    | 2.50 |   4 |    14.69 | 2026-12-01T20:00:13Z |
 :END:
 
 The problems is simple: when playing poker, which hand has the highest rank?
+Here a "hand" is defined as any combinations of 5 different cards from the same deck.
+And a "deck" contains 4 ordered suites, while the suites themselves are not ordered.
 
 The good thing about this problem is that it can be perfectly formalized as an optimization problem in mathematics. We just need to find a way to represent the input, find a way to solve the optimization problem. Then we will get our desired result.
 
