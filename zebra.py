@@ -152,6 +152,7 @@ if __name__ == "__main__":
     estimate_runtime()
     test_zebra()
     print(f"Water and zebra are in house {zebra_puzzle()}, respectively.")
-    print(f"Solution takes {timeit(zebra_puzzle)[0]} second.")
-    print(f"min/mean/max execution time:\n {timethem(10, zebra_puzzle)} seconds")
+    print(f"Solution takes {timeit(zebra_puzzle)[0] * 1e6:.1f} us.")
+    min_t, mean_t, max_t = [t*1e6 for t in timethem(10, zebra_puzzle)]
+    print(f"min/mean/max execution time:\n {min_t:.1f}, {mean_t:.1f}, {max_t:.1f} us")
     instrument_fn(zebra_puzzle)
